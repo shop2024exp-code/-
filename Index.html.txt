@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>كأس حماية البيئة ⚽</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+    .duration-600 { transition-duration: 600ms; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const Trophy = ({ size = 24, className = "" }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+        <path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+      </svg>
+    );
+    const ShieldAlert = ({ size = 24, className = "" }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+    );
+    const Droplets = ({ size = 24, className = "" }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/>
+        <path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/>
+      </svg>
+    );
+    const Leaf = ({ size = 24, className = "" }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/>
+        <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+      </svg>
+    );
+
+    const App = () => {
+      const normalQuestions = [
+        { q: "ما هو الغاز الرئيسي المسؤول عن ظاهرة الاحتباس الحراري؟", a: ["الأكسجين", "ثاني أكسيد الكربون", "النيتروجين"], c: 1 },
+        { q: "أي مما يلي يعتبر مورداً متجدداً؟", a: ["النفط", "الطاقة الشمسية", "الفحم الحجري"], c: 1 },
+        { q: "تسمى الموارد التي تستهلك بسرعة أكبر من سرعة تعويضها...", a: ["متجددة", "غير متجددة", "دائمة"], c: 1 },
+        { q: "إعادة استخدام المواد بعد معالجتها لصنع منتجات جديدة تسمى...", a: ["إعادة التدوير", "الترشيد", "التلوث"], c: 0 },
+        { q: "ما هي الظاهرة التي تسبب ارتفاع درجة حرارة سطح الأرض؟", a: ["التجمد", "الاحترار العالمي", "الأعاصير"], c: 1 },
+        { q: "من أين تستمد الطاقة الحرارية الجوفية مصدرها؟", a: ["باطن الأرض", "ضوء الشمس", "حركة الرياح"], c: 0 },
+        { q: "أي من هذه الموارد يعتبر من الوقود الأحفوري؟", a: ["طاقة الرياح", "الغاز الطبيعي", "الطاقة المائية"], c: 1 },
+        { q: "استخدام كمية أقل من الموارد يسمى...", a: ["الترشيد", "التدوير", "الاستنزاف"], c: 0 },
+        { q: "ما هو المورد الذي نستخدمه لتوليد الطاقة الكهرومائية؟", a: ["الرياح", "الشمس", "المياه الجارية"], c: 2 },
+        { q: "تحويل الورق القديم إلى كرتون جديد هو مثال على...", a: ["إعادة التدوير", "تلوث التربة", "استهلاك الموارد"], c: 0 }
+      ];
+
+      const hardQuestions = [
+        { q: "ما هو الرمز الكيميائي للغاز المسؤول بشكل مباشر عن تآكل طبقة الأوزون؟", a: ["CO2", "O3", "مركبات CFCs", "CH4", "NO2", "SO2"], c: 2 },
+        { q: "أي من الغازات التالية هو السبب الرئيسي لتكون المطر الحمضي عند اختلاطه ببخار الماء؟", a: ["أول أكسيد الكربون", "ثاني أكسيد الكبريت", "الأوزون", "الهيليوم", "الميثان", "الرادون"], c: 1 },
+        { q: "غاز مسرطن، عديم اللون والرائحة، يتسرب من التربة والصخور إلى داخل المباني، ما هو؟", a: ["الرادون", "أول أكسيد الكربون", "النيتروجين", "الأمونيا", "الفريون", "الكلور"], c: 0 },
+        { q: "أين توجد طبقة الأوزون التي تحمي الأرض من الأشعة فوق البنفسجية؟", a: ["التروبوسفير", "الستراتوسفير", "الميزوسفير", "الثيرموسفير", "الإكسوسفير", "الغلاف الصخري"], c: 1 },
+        { q: "تعتمد طاقة المد والجزر على قوة جاذبية...", a: ["الشمس فقط", "القمر والشمس", "باطن الأرض", "الرياح الموسمية", "المريخ", "دوران الأرض"], c: 1 },
+        { q: "أي من التالي يعتبر من أضرار التلوث بالمبيدات الحشرية على المدى الطويل؟", a: ["زيادة نسبة الأكسجين", "تنقية المياه الجوفية", "تراكم السموم في السلسلة الغذائية", "تحسين جودة التربة", "زيادة التنوع الحيوي", "تقليل الاحتباس الحراري"], c: 2 },
+        { q: "الضباب الدخاني يتكون أساساً من تفاعل أشعة الشمس مع...", a: ["بخار الماء الكثيف", "ملوثات عوادم السيارات", "الرمال والأتربة", "أمواج البحر المتبخرة", "غاز الأكسجين النقي", "الأمطار الحمضية"], c: 1 },
+        { q: "ما هي النتيجة المباشرة والأخطر لاستنزاف طبقة الأوزون على الإنسان؟", a: ["صعوبة حادة في التنفس", "زيادة الإصابة بسرطان الجلد", "تسمم الدم والجلد", "ضعف السمع والبصر", "برودة الجو الشديدة", "الجفاف وتصحر الأراضي"], c: 1 }
+      ];
+
+      const [gameState, setGameState] = useState('setup');
+      const [team1Name, setTeam1Name] = useState('حماة البيئة');
+      const [team2Name, setTeam2Name] = useState('أصدقاء الطبيعة');
+      const [turn, setTurn] = useState({ team: 1, roundIdx: 0 });
+      const [score, setScore] = useState({ team1: 0, team2: 0 });
+      const [history, setHistory] = useState({ team1: [], team2: [] });
+      const [currentQ, setCurrentQ] = useState(null);
+      const [animation, setAnimation] = useState(null);
+      const [ballState, setBallState] = useState({
+        animating: false,
+        style: { bottom: '5%', left: '50%', transform: 'translateX(-50%) scale(1.5) rotate(0deg)', opacity: 1 }
+      });
+      const audioCtx = useRef(null);
+
+      const playSound = (type) => {
+        try {
+          if (!audioCtx.current) audioCtx.current = new (window.AudioContext || window.webkitAudioContext)();
+          const ctx = audioCtx.current;
+          if (type === 'whistle') {
+            const osc = ctx.createOscillator(); const gain = ctx.createGain();
+            osc.frequency.setValueAtTime(2200, ctx.currentTime);
+            gain.gain.setValueAtTime(0, ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(); osc.stop(ctx.currentTime + 0.5);
+          } else if (type === 'goal') {
+            const duration = 2.5;
+            const buffer = ctx.createBuffer(1, ctx.sampleRate * duration, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.25;
+            const noise = ctx.createBufferSource(); noise.buffer = buffer;
+            const gain = ctx.createGain();
+            gain.gain.setValueAtTime(0, ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + 0.2);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+            noise.connect(gain); gain.connect(ctx.destination); noise.start();
+          } else if (type === 'miss') {
+            const osc = ctx.createOscillator(); const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(300, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.8, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(); osc.stop(ctx.currentTime + 0.2);
+          } else if (type === 'victory') {
+            const duration = 4;
+            const buffer = ctx.createBuffer(1, ctx.sampleRate * duration, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.4;
+            const noise = ctx.createBufferSource(); noise.buffer = buffer;
+            const filter = ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 2000;
+            const gain = ctx.createGain();
+            gain.gain.setValueAtTime(0, ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.7, ctx.currentTime + 1);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+            noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination); noise.start();
+          }
+        } catch(e) {}
+      };
+
+      const loadQuestion = (isSuddenDeath) => {
+        const q = isSuddenDeath
+          ? hardQuestions[Math.floor(Math.random() * hardQuestions.length)]
+          : normalQuestions[Math.floor(Math.random() * normalQuestions.length)];
+        const positions = isSuddenDeath
+          ? ['top-left','middle-left','bottom-left','top-right','middle-right','bottom-right'].sort(() => Math.random() - 0.5)
+          : ['top-left','top-center','top-right'].sort(() => Math.random() - 0.5);
+        setCurrentQ({ ...q, positions, isSuddenDeath });
+      };
+
+      const handleStart = () => {
+        playSound('whistle');
+        loadQuestion(false);
+        setGameState('playing');
+      };
+
+      const handleAnswer = (idx, pos) => {
+        if (ballState.animating) return;
+        const isCorrect = idx === currentQ.c;
+        const scale = currentQ.isSuddenDeath ? 0.2 : 0.25;
+        let target = {};
+        if (isCorrect) {
+          target.left = pos.includes('left') ? '25%' : pos.includes('right') ? '75%' : '50%';
+          target.bottom = pos.includes('top') ? '40%' : pos.includes('middle') ? '30%' : '20%';
+          target.transform = `translateX(-50%) scale(${scale}) rotate(1080deg)`;
+          target.opacity = 1;
+        } else {
+          target.left = pos.includes('left') ? '12%' : pos.includes('right') ? '88%' : '50%';
+          target.bottom = '75%';
+          target.transform = `translateX(-50%) scale(${scale + 0.15}) rotate(360deg)`;
+          target.opacity = 0.8;
+        }
+        setBallState({ animating: true, style: target });
+        setTimeout(() => {
+          if (isCorrect) {
+            playSound('goal');
+            setAnimation('goal');
+            setScore(p => ({ ...p, [`team${turn.team}`]: p[`team${turn.team}`] + 1 }));
+            setHistory(p => ({ ...p, [`team${turn.team}`]: [...p[`team${turn.team}`], '⚽'] }));
+          } else {
+            playSound('miss');
+            setAnimation('miss');
+            setHistory(p => ({ ...p, [`team${turn.team}`]: [...p[`team${turn.team}`], '❌'] }));
+          }
+          setTimeout(() => {
+            setAnimation(null);
+            setBallState({ animating: false, style: { bottom: '5%', left: '50%', transform: 'translateX(-50%) scale(1.5) rotate(0deg)', opacity: 1 } });
+            checkGame(isCorrect);
+          }, 2500);
+        }, 600);
+      };
+
+      const checkGame = (isCorrect) => {
+        const nextTeam = turn.team === 1 ? 2 : 1;
+        const nextRound = turn.team === 2 ? turn.roundIdx + 1 : turn.roundIdx;
+        const s1 = turn.team === 1 && isCorrect ? score.team1 + 1 : score.team1;
+        const s2 = turn.team === 2 && isCorrect ? score.team2 + 1 : score.team2;
+        const isSuddenDeathPhase = nextRound >= 5;
+        if (isSuddenDeathPhase && nextTeam === 1 && s1 !== s2) {
+          setGameState('result');
+          playSound('victory');
+          if (window.confetti) window.confetti({ particleCount: 350, spread: 100, origin: { y: 0.5 } });
+        } else {
+          setTurn({ team: nextTeam, roundIdx: nextRound });
+          loadQuestion(isSuddenDeathPhase);
+        }
+      };
+
+      const getButtonStyle = (pos, isSuddenDeath) => {
+        const base = {
+          position: 'absolute', zIndex: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '16px', fontSize: '1rem', fontWeight: '900', borderRadius: '12px',
+          boxShadow: '0 10px 20px rgba(0,0,0,0.3)', cursor: 'pointer', textAlign: 'center',
+          lineHeight: '1.3', background: 'rgba(255,255,255,0.95)', border: 'none',
+          borderBottom: '8px solid #cbd5e1', color: '#334155', transition: 'all 0.2s',
+          wordBreak: 'break-word', overflowWrap: 'break-word'
+        };
+        if (isSuddenDeath) {
+          base.width = '30%'; base.minHeight = '80px';
+          if (pos === 'top-left')    { base.left = '6%'; base.top = '18%'; }
+          if (pos === 'middle-left') { base.left = '6%'; base.top = '40%'; }
+          if (pos === 'bottom-left') { base.left = '6%'; base.top = '62%'; }
+          if (pos === 'top-right')    { base.right = '6%'; base.top = '18%'; }
+          if (pos === 'middle-right') { base.right = '6%'; base.top = '40%'; }
+          if (pos === 'bottom-right') { base.right = '6%'; base.top = '62%'; }
+        } else {
+          base.width = '28%'; base.minHeight = '100px';
+          if (pos === 'top-left')   { base.left = '10%'; base.top = '25%'; }
+          if (pos === 'top-center') { base.left = '50%'; base.top = '20%'; base.transform = 'translateX(-50%)'; }
+          if (pos === 'top-right')  { base.right = '10%'; base.top = '25%'; }
+        }
+        return base;
+      };
+
+      if (gameState === 'setup') {
+        return (
+          <div style={{minHeight:'100vh',background:'linear-gradient(135deg,#0f172a,#14532d)',display:'flex',alignItems:'center',justifyContent:'center',padding:'16px',fontFamily:'Segoe UI,Tahoma,sans-serif'}} dir="rtl">
+            <div style={{background:'white',borderRadius:'3rem',padding:'3rem',maxWidth:'640px',width:'100%',boxShadow:'0 20px 50px rgba(0,0,0,0.5)',borderBottom:'12px solid #16a34a'}}>
+              <div style={{display:'flex',justifyContent:'center',gap:'24px',marginBottom:'2rem'}}>
+                <ShieldAlert size={60} className="text-red-500" style={{color:'#ef4444'}} />
+                <Trophy size={90} style={{color:'#eab308'}} />
+                <Droplets size={60} style={{color:'#3b82f6'}} />
+              </div>
+              <h1 style={{fontSize:'2.8rem',fontWeight:'900',marginBottom:'1rem',color:'#1e293b',textAlign:'center'}}>كأس حماية البيئة ⚽</h1>
+              <p style={{fontSize:'1.1rem',color:'#475569',marginBottom:'2.5rem',fontWeight:'700',background:'#f1f5f9',padding:'12px',borderRadius:'8px',textAlign:'center'}}>التعادل ينقلك لأسئلة الحسم الصعبة (6 خيارات)!</p>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'24px',marginBottom:'2.5rem'}}>
+                <div>
+                  <label style={{display:'block',fontWeight:'700',color:'#64748b',marginBottom:'8px'}}>الفريق الأول</label>
+                  <input style={{width:'100%',background:'#f8fafc',padding:'20px',borderRadius:'16px',fontWeight:'900',border:'2px solid #e2e8f0',outline:'none',fontSize:'1.4rem',textAlign:'center'}}
+                    value={team1Name} onChange={e => setTeam1Name(e.target.value)} />
+                </div>
+                <div>
+                  <label style={{display:'block',fontWeight:'700',color:'#64748b',marginBottom:'8px'}}>الفريق الثاني</label>
+                  <input style={{width:'100%',background:'#f8fafc',padding:'20px',borderRadius:'16px',fontWeight:'900',border:'2px solid #e2e8f0',outline:'none',fontSize:'1.4rem',textAlign:'center'}}
+                    value={team2Name} onChange={e => setTeam2Name(e.target.value)} />
+                </div>
+              </div>
+              <button onClick={handleStart} style={{width:'100%',padding:'24px',background:'#16a34a',color:'white',borderRadius:'20px',fontWeight:'900',fontSize:'1.8rem',border:'none',cursor:'pointer',boxShadow:'0 10px 30px rgba(22,163,74,0.4)'}}>
+                بدء المباراة ⚽
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div style={{height:'100vh',width:'100%',background:'#0f172a',display:'flex',flexDirection:'column',overflow:'hidden',fontFamily:'Segoe UI,Tahoma,sans-serif',position:'relative'}} dir="rtl">
+          {/* شريط النتيجة */}
+          <div style={{width:'100%',background:'rgba(0,0,0,0.9)',padding:'16px 32px',display:'flex',justifyContent:'space-between',alignItems:'center',zIndex:50,borderBottom:'2px solid rgba(34,197,94,0.3)'}}>
+            <div style={{textAlign:'center',width:'240px',background:'rgba(30,41,59,0.5)',padding:'12px',borderRadius:'16px',border:'1px solid #334155'}}>
+              <p style={{color:'#60a5fa',fontWeight:'700',fontSize:'1.1rem',marginBottom:'4px'}}>{team1Name}</p>
+              <p style={{color:'white',fontSize:'3rem',fontWeight:'900',margin:0}}>{score.team1}</p>
+              <div style={{display:'flex',justifyContent:'center',gap:'4px',marginTop:'8px',height:'24px'}}>
+                {history.team1.map((h,i) => <span key={i} style={{fontSize:'1.2rem'}}>{h}</span>)}
+              </div>
+            </div>
+            <div style={{display:'flex',flexDirection:'column',alignItems:'center',flex:1}}>
+              <div style={{padding:'12px 40px',borderRadius:'999px',color:'white',fontSize:'1.1rem',fontWeight:'900',background: turn.roundIdx >= 5 ? '#dc2626' : '#16a34a'}}>
+                {turn.roundIdx >= 5 ? 'فرصة الحسم الأخيرة 🔥' : `الركلة ${turn.roundIdx + 1}`}
+              </div>
+              <div style={{marginTop:'12px',background:'#1e293b',padding:'8px 24px',borderRadius:'999px',border:'1px solid #334155'}}>
+                <span style={{color:'#94a3b8',fontWeight:'700',fontSize:'0.85rem'}}>المسدد الآن: </span>
+                <span style={{color: turn.team === 1 ? '#60a5fa' : '#f87171',fontSize:'1.2rem',fontWeight:'900'}}>{turn.team === 1 ? team1Name : team2Name}</span>
+              </div>
+            </div>
+            <div style={{textAlign:'center',width:'240px',background:'rgba(30,41,59,0.5)',padding:'12px',borderRadius:'16px',border:'1px solid #334155'}}>
+              <p style={{color:'#f87171',fontWeight:'700',fontSize:'1.1rem',marginBottom:'4px'}}>{team2Name}</p>
+              <p style={{color:'white',fontSize:'3rem',fontWeight:'900',margin:0}}>{score.team2}</p>
+              <div style={{display:'flex',justifyContent:'center',gap:'4px',marginTop:'8px',height:'24px'}}>
+                {history.team2.map((h,i) => <span key={i} style={{fontSize:'1.2rem'}}>{h}</span>)}
+              </div>
+            </div>
+          </div>
+
+          {/* منطقة اللعب */}
+          <div style={{flex:1,width:'100%',position:'relative',background:'#15803d',overflow:'hidden'}}>
+            {/* السؤال */}
+            <div style={{position:'absolute',top:'24px',left:'50%',transform:'translateX(-50%)',width:'85%',maxWidth:'900px',background:'rgba(255,255,255,0.97)',backdropFilter:'blur(8px)',boxShadow:'0 20px 50px rgba(0,0,0,0.5)',padding:'24px',borderRadius:'24px',zIndex:40,textAlign:'center',borderBottom: currentQ?.isSuddenDeath ? '6px solid #dc2626' : '6px solid #16a34a'}}>
+              <div style={{display:'inline-block',padding:'4px 16px',borderRadius:'999px',fontSize:'0.75rem',fontWeight:'900',marginBottom:'12px',letterSpacing:'0.1em',background: currentQ?.isSuddenDeath ? '#fee2e2' : '#dcfce7',color: currentQ?.isSuddenDeath ? '#b91c1c' : '#15803d'}}>
+                {currentQ?.isSuddenDeath ? 'مرحلة الصعوبة والحسم' : 'الركلات الأساسية'}
+              </div>
+              <h2 style={{fontSize:'1.8rem',fontWeight:'900',color:'#1e293b',lineHeight:1.4,margin:0}}>{currentQ?.q}</h2>
+            </div>
+
+            {/* المرمى SVG */}
+            <div style={{position:'absolute',inset:0,pointerEvents:'none'}}>
+              <svg width="100%" height="100%" preserveAspectRatio="none">
+                <rect x="0" y="0" width="100%" height="100%" fill="#1a6618"/>
+                <defs>
+                  <pattern id="net" width="30" height="30" patternUnits="userSpaceOnUse">
+                    <path d="M30 0 L0 0 0 30" fill="none" stroke="rgba(255,255,255,0.65)" strokeWidth="1.5"/>
+                    <path d="M30 30 L0 30 L30 0" fill="none" stroke="rgba(255,255,255,0.65)" strokeWidth="1.5"/>
+                  </pattern>
+                  <linearGradient id="post" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#ffffff"/>
+                    <stop offset="100%" stopColor="#cccccc"/>
+                  </linearGradient>
+                </defs>
+                <rect x="15%" y="15%" width="70%" height="65%" fill="rgba(0,0,0,0.18)"/>
+                <rect x="15%" y="15%" width="70%" height="65%" fill="url(#net)"/>
+                <rect x="13%" y="12%" width="74%" height="22" fill="url(#post)" rx="5"/>
+                <rect x="13%" y="12%" width="22" height="68%" fill="url(#post)" rx="5"/>
+                <rect x="87%" y="12%" width="22" height="68%" fill="url(#post)" rx="5"/>
+                <rect x="0" y="80%" width="100%" height="20%" fill="#145214"/>
+                <ellipse cx="50%" cy="90%" rx="28" ry="9" fill="white" opacity="0.7"/>
+              </svg>
+            </div>
+
+            {/* أزرار الإجابات */}
+            <div style={{position:'absolute',inset:0,zIndex:30}}>
+              {gameState === 'playing' && currentQ?.a.map((opt, i) => {
+                const pos = currentQ.positions[i];
+                const btnStyle = getButtonStyle(pos, currentQ.isSuddenDeath);
+                return (
+                  <button key={i} disabled={ballState.animating} onClick={() => handleAnswer(i, pos)} style={btnStyle}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#fbbf24'; e.currentTarget.style.transform = (btnStyle.transform || '') + ' translateY(-4px)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.95)'; e.currentTarget.style.transform = btnStyle.transform || ''; }}>
+                    {opt}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* الكرة */}
+            <div style={{position:'absolute',zIndex:20,fontSize:'8rem',lineHeight:1,filter:'drop-shadow(0 30px 20px rgba(0,0,0,0.6))',transition:'all 0.6s ease-in-out',pointerEvents:'none',userSelect:'none',...ballState.style}}>
+              ⚽
+            </div>
+          </div>
+
+          {/* تنبيه هدف / عارضة */}
+          {animation && (
+            <div style={{position:'fixed',inset:0,zIndex:100,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.85)',backdropFilter:'blur(8px)'}}>
+              <div style={{textAlign:'center',color:'white'}}>
+                {animation === 'goal' ? (
+                  <div>
+                    <div style={{fontSize:'12rem',lineHeight:1,marginBottom:'16px',animation:'bounce 0.5s infinite alternate'}}>⚽</div>
+                    <h2 style={{fontSize:'7rem',fontWeight:'900',fontStyle:'italic',background:'linear-gradient(to bottom,#86efac,#16a34a)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',margin:0}}>جوووول!!</h2>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{fontSize:'10rem',lineHeight:1,marginBottom:'16px',filter:'grayscale(1)'}}>⚡</div>
+                    <h2 style={{fontSize:'6rem',fontWeight:'900',fontStyle:'italic',color:'#ef4444',margin:0}}>في العارضة!</h2>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* شاشة النتيجة النهائية */}
+          {gameState === 'result' && (
+            <div style={{position:'fixed',inset:0,zIndex:100,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.97)',backdropFilter:'blur(20px)',padding:'24px'}}>
+              <div style={{background:'white',borderRadius:'3rem',padding:'4rem',textAlign:'center',maxWidth:'700px',width:'100%',boxShadow:'0 0 100px rgba(34,197,94,0.4)',borderBottom:'16px solid #16a34a'}}>
+                <Trophy size={160} style={{color:'#eab308',margin:'0 auto 2rem',display:'block'}} />
+                <h2 style={{fontSize:'3.5rem',fontWeight:'900',color:'#1e293b',marginBottom:'1.5rem'}}>تتويج الأبطال! 🏆</h2>
+                <div style={{background:'linear-gradient(135deg,#16a34a,#0f172a)',color:'white',padding:'3rem',borderRadius:'2rem',margin:'2rem 0',position:'relative',overflow:'hidden'}}>
+                  <span style={{fontSize:'4rem',fontWeight:'900',display:'block',lineHeight:1.2}}>
+                    {score.team1 > score.team2 ? team1Name : team2Name}
+                  </span>
+                  <div style={{marginTop:'2rem',color:'rgba(255,255,255,0.9)',fontSize:'2.5rem',fontWeight:'700',borderTop:'1px solid rgba(255,255,255,0.2)',paddingTop:'2rem'}}>
+                    النتيجة: {Math.max(score.team1, score.team2)} - {Math.min(score.team1, score.team2)}
+                  </div>
+                </div>
+                <button onClick={() => window.location.reload()} style={{width:'100%',padding:'28px',background:'#16a34a',color:'white',borderRadius:'20px',fontWeight:'900',fontSize:'2rem',border:'none',cursor:'pointer',boxShadow:'0 10px 30px rgba(22,163,74,0.4)'}}>
+                  العب بطولة جديدة 🔄
+                </button>
+              </div>
+            </div>
+          )}
+          <style>{`@keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-20px); } }`}</style>
+
+```
+    </div>
+  );
+};
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+```
+
+  </script>
+</body>
+</html>
